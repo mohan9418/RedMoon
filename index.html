@@ -1490,7 +1490,7 @@ let W, H, CX, CY, ARENA_R;
 
 function resize() {
   const wrap = document.getElementById("arena-wrap");
-  const dpr = Math.min(window.devicePixelRatio || 1, 3);
+  const dpr = Math.max(window.devicePixelRatio || 1, 4);
   W = wrap.clientWidth;
   H = wrap.clientHeight;
   canvas.width = W * dpr;
@@ -1512,7 +1512,7 @@ let fighters = [];
 let bannerText = "";
 let bannerSub = "";
 let bannerColor = "#facc15";
-let  = 0;
+let winAnimProgress = 0;
 let lineUpList = [];
 let confettiParticles = [];
 let linePieces = [];
@@ -1603,6 +1603,10 @@ function registerVote(user, message) {
   const country = parseVote(message);
   if (!country) return;
   votes[country.name] = (votes[country.name] || 0) + 1;
+  const totalAllVotes = Object.values(votes).reduce((a, b) => a + b, 0);
+  if (totalAllVotes > 0 && totalAllVotes % 10 === 0) {
+    window.arenaGoldPulseUntil = Date.now() + 900;
+  }
   lastVoterByCountry[country.name] = user || "Viewer";
 
   window.recentVoteFeed.unshift({
@@ -1689,7 +1693,6 @@ function showNextChampBanner() {
   cSub.style.color = t.subColor;
   cSub.textContent = t.label;
   cName.textContent = item.name;
-  window.arenaGoldPulseUntil = Date.now() + 900;
   card.style.transform = "rotateY(180deg)";
   clearTimeout(window._champBannerTimer);
   window._champBannerTimer = setTimeout(() => {
@@ -3705,7 +3708,7 @@ flyCanvas.style.cssText = `
     }
 
     // Show big country name below the flag while centered
-    if (!sp.movingToSlot) {
+        if (!sp.movingToSlot) {
       ctx.fillStyle = "#ffffff";
       ctx.font = "900 19px Arial Black, sans-serif";
       ctx.textAlign = "center";
@@ -3713,8 +3716,8 @@ flyCanvas.style.cssText = `
       ctx.fillStyle = "#facc15";
       ctx.font = "900 12px Arial, sans-serif";
       ctx.fillText(`FINALIST #${sp.rank}`, sp.x, sp.y + r + 42);
-    ctx.restore();
     }
+    ctx.restore();
   }
         if (window.flyingVoteFlags) {
     for (const fl of window.flyingVoteFlags) {
@@ -3736,6 +3739,9 @@ flyCanvas.style.cssText = `
       if (gameState === "ROUND_END") continue;
       
               ctx.save();
+ctx.imageSmoothingEnabled = false;
+ctx.shadowBlur = 0;
+ctx.globalAlpha = 0.95;
 ctx.strokeStyle = f.country.color;
 ctx.lineWidth = 1.85;
 ctx.beginPath();
@@ -3765,13 +3771,12 @@ ctx.restore();
 
 }
 
-        for (const f of fighters) {
-  if (f.eliminated) continue;
-  if (gameState === "ROUND_END") continue;
-  drawCircleFlag(f.country, f.x, f.y, f.r, f.country.color);
+              for (const f of fighters) {
+        if (f.eliminated) continue;
+        if (gameState === "ROUND_END") continue;
+        drawCircleFlag(f.country, f.x, f.y, f.r, f.country.color);
 
-  
-}
+      }
 
 
     for (const lp of linePieces) {
